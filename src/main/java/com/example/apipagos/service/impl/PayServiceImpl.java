@@ -13,6 +13,7 @@ import com.example.apipagos.exceptions.CatalogErrors;
 import com.example.apipagos.repository.ExchangeRateRepository;
 import com.example.apipagos.repository.PayRepository;
 import com.example.apipagos.service.PayService;
+import feign.FeignException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -78,13 +79,21 @@ public class PayServiceImpl implements PayService {
     }
 
     private void updateBalance(Pay pay){
-        log.info("Invocando servicio de Saldo por id de usuario: {}",pay.getUserId());
-        ResponseGetBalancesUserDto responseGetBalancesUserDto = apiSaldosFeignClient.getBalancesUserDto(pay.getUserId());
-        log.info("Respuesta de API, saldo de usuario: {}", responseGetBalancesUserDto.toString());
+        try {
+            log.info("Invocando servicio de Saldo por id de usuario: {}",pay.getUserId());
+            ResponseGetBalancesUserDto responseGetBalancesUserDto = apiSaldosFeignClient.getBalancesUserDto(pay.getUserId());
+            log.info("Respuesta de API, saldo de usuario: {}", responseGetBalancesUserDto.toString());
 
-        RequestUpdateBalanceDto requestUpdateBalanceDto = RequestUpdateBalanceDto.builder().amount(pay.getAmountConverted()).build();
-        log.info("Invocando servicio de actualizacion de saldo, objeto enviado: {}",requestUpdateBalanceDto);
-        ResponseUpdateBalanceDto responseUpdateBalanceDto = apiSaldosFeignClient.updateBalance(responseGetBalancesUserDto.getId(), requestUpdateBalanceDto);
-        log.info("Respuesta servicio de actualizacion de saldo: {}",responseUpdateBalanceDto);
+            RequestUpdateBalanceDto requestUpdateBalanceDto = RequestUpdateBalanceDto.builder().amount(pay.getAmountConverted()).build();
+            log.info("Invocando servicio de actualización de saldo, objeto enviado: {}", requestUpdateBalanceDto);
+            ResponseUpdateBalanceDto responseUpdateBalanceDto = apiSaldosFeignClient.updateBalance(responseGetBalancesUserDto.getId(), requestUpdateBalanceDto);
+            log.info("Respuesta servicio de actualización de saldo: {}", responseUpdateBalanceDto);
+
+        } catch (Exception e){
+            log.error("Error al Invocar servicio de actualización de saldo. {}",e.getMessage());
+            pay.setStatus(StatusPay.RETORNED);
+            payRepository.save(pay);
+            throw CatalogErrors.PAY_SAVE_PAY_E500_001.getException();
+        }
     }
 }

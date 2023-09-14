@@ -21,5 +21,7 @@ public class Pay implements Serializable {
     private String moneyDestiny;
     private Float exchangeRate;
     private Long userId;
+
+    @Enumerated(EnumType.STRING)
     private StatusPay status;
 }
