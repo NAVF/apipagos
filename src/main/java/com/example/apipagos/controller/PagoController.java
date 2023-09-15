@@ -8,6 +8,7 @@ import com.example.apipagos.dto.UpdateExchangeRateDto;
 import com.example.apipagos.service.ExchangeRateService;
 import com.example.apipagos.service.PayService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -22,7 +23,7 @@ public class PagoController {
     private final ExchangeRateService exchangeRateService;
 
     @PostMapping("/pays")
-    public SavedPayDto savePay(@RequestBody SavePayDto savePayDto){
+    public SavedPayDto savePay(@RequestBody SavePayDto savePayDto, @RequestHeader(HttpHeaders.AUTHORIZATION) String Token){
         return payService.savePay(savePayDto);
     }
 
